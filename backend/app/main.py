@@ -78,26 +78,120 @@ def root():
 # ---------------------------------------------------------
 
 @app.get("/api/tests")
-def get_tests(limit: int = 100):
+def get_tests(
+    page: int = 1,
+    page_size: int = 10,
+    search: str | None = None,
+    result: str | None = None,
+    robot_id: str | None = None,
+    task_type: str | None = None,
+    failure_type: str | None = None,
+):
     df = load_test_data()
 
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-
-    records = (
-    df.sort_values("timestamp", ascending=False)
-    .head(limit)
-    .copy()
+    df["timestamp"] = pd.to_datetime(
+        df["timestamp"]
     )
 
-    # Convert Pandas NaN values into JSON-safe Python None.
-    # astype(object) is important because some Pandas columns
-    # otherwise preserve NaN even when we try replacing it.
+    # -----------------------------------------------------
+    # Search by Test ID
+    # -----------------------------------------------------
+
+    if search:
+        df = df[
+            df["test_id"]
+            .str.contains(
+                search,
+                case=False,
+                na=False,
+            )
+        ]
+
+    # -----------------------------------------------------
+    # Filter by test result
+    # -----------------------------------------------------
+
+    if result:
+        df = df[
+            df["result"].str.upper()
+            == result.upper()
+        ]
+
+    # -----------------------------------------------------
+    # Filter by robot
+    # -----------------------------------------------------
+
+    if robot_id:
+        df = df[
+            df["robot_id"].str.upper()
+            == robot_id.upper()
+        ]
+
+    # -----------------------------------------------------
+    # Filter by task
+    # -----------------------------------------------------
+
+    if task_type:
+        df = df[
+            df["task_type"].str.upper()
+            == task_type.upper()
+        ]
+
+    # -----------------------------------------------------
+    # Filter by failure type
+    # -----------------------------------------------------
+
+    if failure_type:
+        df = df[
+            df["failure_type"]
+            .fillna("")
+            .str.upper()
+            == failure_type.upper()
+        ]
+
+    # -----------------------------------------------------
+    # Total number of matching tests
+    # BEFORE pagination
+    # -----------------------------------------------------
+
+    total = len(df)
+
+    # Prevent invalid pagination values
+    page = max(page, 1)
+    page_size = max(page_size, 1)
+
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    records = (
+        df.sort_values(
+            "timestamp",
+            ascending=False,
+        )
+        .iloc[start:end]
+        .copy()
+    )
+
     records = records.astype(object).where(
         pd.notnull(records),
         None,
     )
 
-    return records.to_dict(orient="records")
+    total_pages = (
+        (total + page_size - 1) // page_size
+        if total > 0
+        else 0
+    )
+
+    return {
+        "items": records.to_dict(
+            orient="records"
+        ),
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+    }
 
 
 # ---------------------------------------------------------

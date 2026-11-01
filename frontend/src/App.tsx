@@ -86,7 +86,13 @@ interface InvestigationReport {
   root_cause_analysis: RootCauseAnalysis
 }
 
-
+interface TestResponse {
+  items: TestRun[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
 
 function App() {
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -97,6 +103,23 @@ function App() {
   const [investigationLoading, setInvestigationLoading] =
     useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [resultFilter, setResultFilter] = useState('ALL')
+  const [robotFilter, setRobotFilter] = useState('ALL')
+  const [taskFilter, setTaskFilter] = useState('ALL')
+  const [failureFilter, setFailureFilter] = useState('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalTests, setTotalTests] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+
+  const resetFilters = () => {
+    setSearchTerm('')
+    setResultFilter('ALL')
+    setRobotFilter('ALL')
+    setTaskFilter('ALL')
+    setFailureFilter('ALL')
+    setCurrentPage(1)
+  }
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/summary')
@@ -116,21 +139,58 @@ function App() {
   }, [])
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/tests?limit=10')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch test runs')
-        }
+  const params = new URLSearchParams()
 
-        return response.json()
-      })
-      .then((data: TestRun[]) => {
-        setTests(data)
-      })
-      .catch((error) => {
-        setError(error.message)
-      })
-  }, [])
+  params.set('page', currentPage.toString())
+  params.set('page_size', '10')
+
+  if (searchTerm.trim()) {
+    params.set('search', searchTerm.trim())
+  }
+
+  if (resultFilter !== 'ALL') {
+    params.set('result', resultFilter)
+  }
+
+  if (robotFilter !== 'ALL') {
+    params.set('robot_id', robotFilter)
+  }
+
+  if (taskFilter !== 'ALL') {
+    params.set('task_type', taskFilter)
+  }
+
+  if (failureFilter !== 'ALL') {
+    params.set('failure_type', failureFilter)
+  }
+
+  fetch(
+    `http://127.0.0.1:8000/api/tests?${params.toString()}`,
+  )
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch test runs')
+      }
+
+      return response.json()
+    })
+    .then((data: TestResponse) => {
+      setTests(data.items)
+      setTotalTests(data.total)
+      setCurrentPage(data.page)
+      setTotalPages(data.total_pages)
+    })
+    .catch((error) => {
+      setError(error.message)
+    })
+}, [
+  searchTerm,
+  resultFilter,
+  robotFilter,
+  taskFilter,
+  failureFilter,
+  currentPage,
+])
 
   const investigateTest = async (testId: string) => {
     setError(null)
@@ -309,10 +369,132 @@ function App() {
                 <h2>Recent Test Runs</h2>
               </div>
 
+              <div className="test-panel-actions">
               <span className="record-count">
-                LATEST 10
+                {totalTests} MATCHING
               </span>
+
+              <button
+                className="reset-filters-button"
+                onClick={resetFilters}
+              >
+                RESET FILTERS
+              </button>
+              </div>
             </div>
+            
+            <div className="test-filters">
+            <div className="search-filter">
+              <label>SEARCH TEST ID</label>
+
+              <input
+                type="text"
+                placeholder="TEST-0419"
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value)
+                  setCurrentPage(1)
+                }}
+              />
+            </div>
+
+            <div className="filter-field">
+              <label>STATUS</label>
+
+              <select
+                value={resultFilter}
+                onChange={(event) => {
+                  setResultFilter(event.target.value)
+                  setCurrentPage(1)
+                }}
+              >
+                <option value="ALL">ALL</option>
+                <option value="PASSED">PASSED</option>
+                <option value="FAILED">FAILED</option>
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label>ROBOT</label>
+
+              <select
+                value={robotFilter}
+                onChange={(event) => {
+                  setRobotFilter(event.target.value)
+                  setCurrentPage(1)
+                }}
+              >
+                <option value="ALL">ALL</option>
+                <option value="RBT-01">RBT-01</option>
+                <option value="RBT-02">RBT-02</option>
+                <option value="RBT-03">RBT-03</option>
+                <option value="RBT-04">RBT-04</option>
+                <option value="RBT-05">RBT-05</option>
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label>TASK</label>
+
+              <select
+                value={taskFilter}
+                onChange={(event) => {
+                  setTaskFilter(event.target.value)
+                  setCurrentPage(1)
+                }}
+              >
+                <option value="ALL">ALL</option>
+                <option value="PALLET_MOVE">
+                  PALLET MOVE
+                </option>
+
+                <option value="OBJECT_PICK">
+                  OBJECT PICK
+                </option>
+
+                <option value="WAREHOUSE_WALK">
+                  WAREHOUSE WALK
+                </option>
+
+                <option value="TOTE_TRANSFER">
+                  TOTE TRANSFER
+                </option>
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label>FAILURE TYPE</label>
+
+              <select
+                value={failureFilter}
+                onChange={(event) => {
+                  setFailureFilter(event.target.value)
+                  setCurrentPage(1)
+                }}
+              >
+                <option value="ALL">ALL</option>
+
+                <option value="BALANCE_FAILURE">
+                  BALANCE FAILURE
+                </option>
+
+                <option value="GRIP_FAILURE">
+                  GRIP FAILURE
+                </option>
+
+                <option value="NAVIGATION_FAILURE">
+                  NAVIGATION FAILURE
+                </option>
+
+                <option value="THERMAL_WARNING">
+                  THERMAL WARNING
+                </option>
+              </select>
+            </div>
+
+          </div>
+
+
 
             <div className="table-wrapper">
               <table>
@@ -359,6 +541,36 @@ function App() {
                 </tbody>
               </table>
             </div>
+          <div className="pagination">
+
+              <button
+                className="pagination-button"
+                onClick={() =>
+                  setCurrentPage((page) => page - 1)
+                }
+                disabled={currentPage <= 1}
+              >
+                PREVIOUS
+              </button>
+
+              <span className="pagination-info">
+                PAGE {currentPage} OF {totalPages || 1}
+              </span>
+
+              <button
+                className="pagination-button"
+                onClick={() =>
+                  setCurrentPage((page) => page + 1)
+                }
+                disabled={
+                  totalPages === 0 ||
+                  currentPage >= totalPages
+                }
+              >
+                NEXT
+              </button>
+
+          </div>  
           </section>
         </div>
 
@@ -493,7 +705,8 @@ function App() {
               </div>
             </div>
 
-            <div className="intelligence-section">
+            {selectedTest.result === 'FAILED' ? (
+             <div className="intelligence-section">
               <div className="intelligence-heading">
                 <div>
                   <p className="section-label">
@@ -753,11 +966,28 @@ function App() {
                         {investigation.root_cause_analysis.disclaimer}
                       </p>
 
-                    </div>
+                                        </div>
                   )}
                 </div>
               )}
             </div>
+
+          ) : (
+            <div className="passed-investigation">
+              <p className="section-label">
+                VALIDATION RESULT
+              </p>
+
+              <h2>Test Passed</h2>
+
+              <p>
+                No failure investigation is required for this
+                validation run. Telemetry remains available for
+                engineering review.
+              </p>
+            </div>
+          )}
+
           </section>
         )}
       </main>
