@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://127.0.0.1:8000'
+
 interface Summary {
   total_tests: number
   passed: number
@@ -162,7 +166,7 @@ function App() {
    }
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/summary')
+    fetch(`${API_BASE_URL}/api/summary`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch summary')
@@ -207,7 +211,7 @@ function App() {
   setTestsLoading(true)
 
   fetch(
-    `http://127.0.0.1:8000/api/tests?${params.toString()}`,
+    `${API_BASE_URL}/api/tests?${params.toString()}`,
   )
     .then((response) => {
       if (!response.ok) {
@@ -244,7 +248,7 @@ function App() {
 
     try {
       const testResponse = await fetch(
-        `http://127.0.0.1:8000/api/tests/${testId}`,
+        `${API_BASE_URL}/api/tests/${testId}`,
       )
 
       if (!testResponse.ok) {
@@ -256,7 +260,7 @@ function App() {
       setSelectedTest(testData)
 
       const investigationResponse = await fetch(
-        `http://127.0.0.1:8000/api/investigate/${testId}`,
+        `${API_BASE_URL}/api/investigate/${testId}`,
       )
 
       if (!investigationResponse.ok) {
