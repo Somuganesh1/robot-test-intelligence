@@ -1132,3 +1132,127 @@ tbody tr:hover {
   font-weight: 700;
   letter-spacing: 1px;
 }
+/* =========================================================
+   TEST TABLE STATES
+   ========================================================= */
+
+.table-state {
+  height: 150px;
+
+  text-align: center !important;
+  vertical-align: middle;
+
+  color: #607b9c;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.table-state strong {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #8eabc9;
+  font-size: 11px;
+}
+
+.table-state span {
+  display: block;
+
+  color: #526b88;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+/* =========================================================
+   INVESTIGATION NAVIGATION
+   ========================================================= */
+
+.investigation-nav-button {
+  padding: 8px 12px;
+
+  border: 1px solid #2b3b52;
+  border-radius: 5px;
+
+  background: #111c2b;
+  color: #91a3ba;
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+
+  cursor: pointer;
+}
+
+.investigation-nav-button:hover:not(:disabled) {
+  border-color: #4775aa;
+  color: #d8e7fa;
+}
+
+.investigation-nav-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+/* =========================================================
+   TEST SUMMARY STRIP
+   ========================================================= */
+
+.test-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  margin-top: 20px;
+}
+
+.test-summary-item {
+  padding: 14px 16px;
+
+  border: 1px solid #1d3046;
+  border-radius: 6px;
+
+  background: #0a121d;
+}
+
+.test-summary-item span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #5f7898;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.test-summary-item strong {
+  color: #dbe8f8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 800px) {
+  .test-summary-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .test-summary-strip {
+    grid-template-columns: 1fr;
+  }
+}
+/* =========================================================
+   SELECTED TEST ROW
+   ========================================================= */
+
+.selected-row {
+  background: rgba(66, 133, 229, 0.08);
+}
+
+.selected-row td {
+  border-bottom-color: #294d78;
+}
+
+.selected-row .test-id {
+  color: #8bbcff;
+}

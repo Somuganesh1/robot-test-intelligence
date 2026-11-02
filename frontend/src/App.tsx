@@ -97,7 +97,9 @@ interface TestResponse {
 function App() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [tests, setTests] = useState<TestRun[]>([])
+  const [testsLoading, setTestsLoading] = useState(false)
   const [selectedTest, setSelectedTest] = useState<TestRun | null>(null)
+  
   const [investigation, setInvestigation] =
     useState<InvestigationReport | null>(null)
   const [investigationLoading, setInvestigationLoading] =
@@ -111,6 +113,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalTests, setTotalTests] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  
 
   const resetFilters = () => {
     setSearchTerm('')
@@ -120,6 +123,31 @@ function App() {
     setFailureFilter('ALL')
     setCurrentPage(1)
   }
+
+  const selectedTestIndex = selectedTest
+    ? tests.findIndex(
+        (test) => test.test_id === selectedTest.test_id,
+      )
+    : -1
+
+  const investigatePreviousTest = () => {
+    if (selectedTestIndex > 0) {
+      investigateTest(
+        tests[selectedTestIndex - 1].test_id,
+      )
+    }
+  }
+
+  const investigateNextTest = () => {
+      if (
+        selectedTestIndex >= 0 &&
+        selectedTestIndex < tests.length - 1
+      ) {
+        investigateTest(
+          tests[selectedTestIndex + 1].test_id,
+        )
+      }
+   }
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/summary')
@@ -164,6 +192,8 @@ function App() {
     params.set('failure_type', failureFilter)
   }
 
+  setTestsLoading(true)
+
   fetch(
     `http://127.0.0.1:8000/api/tests?${params.toString()}`,
   )
@@ -182,6 +212,9 @@ function App() {
     })
     .catch((error) => {
       setError(error.message)
+    })
+    .finally(() => {
+      setTestsLoading(false)
     })
 }, [
   searchTerm,
@@ -508,36 +541,77 @@ function App() {
                 </thead>
 
                 <tbody>
-                  {tests.map((test) => (
-                    <tr
-                      key={test.test_id}
-                      onClick={() => investigateTest(test.test_id)}
-                      className="clickable-row"
-                    >
-                      <td className="test-id">
-                        {test.test_id}
+
+                  {testsLoading ? (
+
+                    <tr>
+                      <td
+                        className="table-state"
+                        colSpan={4}
+                      >
+                        LOADING TEST RUNS...
                       </td>
+                    </tr>
 
-                      <td>{test.robot_id}</td>
+                  ) : tests.length === 0 ? (
 
-                      <td>
-                        {test.task_type.replaceAll('_', ' ')}
-                      </td>
+                    <tr>
+                      <td
+                        className="table-state"
+                        colSpan={4}
+                      >
+                        <strong>NO TEST RUNS FOUND</strong>
 
-                      <td>
-                        <span
-                          className={
-                            test.result === 'PASSED'
-                              ? 'result passed'
-                              : 'result failed'
-                          }
-                        >
-                          <span className="result-dot"></span>
-                          {test.result}
+                        <span>
+                          Try changing or resetting your filters.
                         </span>
                       </td>
                     </tr>
-                  ))}
+
+                  ) : (
+
+                    tests.map((test) => (
+                      <tr
+                        key={test.test_id}
+                        onClick={() =>
+                          investigateTest(test.test_id)
+                        }
+                        className={
+                          selectedTest?.test_id === test.test_id
+                            ? 'clickable-row selected-row'
+                            : 'clickable-row'
+                        }
+                      >
+                        <td className="test-id">
+                          {test.test_id}
+                        </td>
+
+                        <td>
+                          {test.robot_id}
+                        </td>
+
+                        <td>
+                          {test.task_type.replaceAll('_', ' ')}
+                        </td>
+
+                        <td>
+                          <span
+                            className={
+                              test.result === 'PASSED'
+                                ? 'result passed'
+                                : 'result failed'
+                            }
+                          >
+                            <span className="result-dot"></span>
+
+                            {test.result}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+
+                  )}
+
                 </tbody>
               </table>
             </div>
@@ -601,7 +675,24 @@ function App() {
                   <span className="result-dot"></span>
                   {selectedTest.result}
                 </span>
+                <button
+                  className="investigation-nav-button"
+                  onClick={investigatePreviousTest}
+                  disabled={selectedTestIndex <= 0}
+                >
+                  ← PREVIOUS
+                </button>
 
+                <button
+                  className="investigation-nav-button"
+                  onClick={investigateNextTest}
+                  disabled={
+                    selectedTestIndex < 0 ||
+                    selectedTestIndex >= tests.length - 1
+                  }
+                >
+                  NEXT →
+                </button>
                 <button
                   className="close-button"
                   onClick={closeInvestigation}
@@ -610,7 +701,42 @@ function App() {
                 </button>
               </div>
             </div>
+            <div className="test-summary-strip">
 
+              <div className="test-summary-item">
+                <span>ROBOT</span>
+                <strong>{selectedTest.robot_id}</strong>
+              </div>
+
+              <div className="test-summary-item">
+                <span>TASK</span>
+                <strong>
+                  {selectedTest.task_type.replaceAll('_', ' ')}
+                </strong>
+              </div>
+
+              <div className="test-summary-item">
+                <span>RESULT</span>
+                <strong>
+                  {selectedTest.result}
+                </strong>
+              </div>
+
+              <div className="test-summary-item">
+                <span>
+                  {selectedTest.result === 'FAILED'
+                    ? 'FAILURE'
+                    : 'STATUS'}
+                </span>
+
+                <strong>
+                  {selectedTest.result === 'FAILED'
+                    ? selectedTest.failure_type?.replaceAll('_', ' ')
+                    : 'VALIDATION PASSED'}
+                </strong>
+              </div>
+
+            </div>
             {selectedTest.failure_type && (
               <div className="failure-alert">
                 <span>FAILURE TYPE</span>
