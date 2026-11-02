@@ -1256,3 +1256,106 @@ tbody tr:hover {
 .selected-row .test-id {
   color: #8bbcff;
 }
+/* =========================================================
+   ML ANOMALY ANALYSIS
+   ========================================================= */
+
+.ml-analysis-card {
+  grid-column: 1 / -1;
+}
+
+.ml-analysis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 18px;
+}
+
+.ml-analysis-header h3 {
+  margin: 4px 0 0;
+
+  color: #e6f0ff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ml-status {
+  padding: 7px 11px;
+
+  border-radius: 5px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.ml-status.normal {
+  color: #56e5aa;
+
+  border: 1px solid rgba(86, 229, 170, 0.35);
+  background: rgba(86, 229, 170, 0.07);
+}
+
+.ml-status.anomaly {
+  color: #ff6978;
+
+  border: 1px solid rgba(255, 105, 120, 0.35);
+  background: rgba(255, 105, 120, 0.07);
+}
+
+.ml-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.ml-metric {
+  padding: 13px 14px;
+
+  border: 1px solid #1d3046;
+  border-radius: 5px;
+
+  background: #0b1625;
+}
+
+.ml-metric span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #557496;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.ml-metric strong {
+  color: #c8d9ee;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ml-analysis-note {
+  margin: 16px 0 0;
+  padding-top: 14px;
+
+  border-top: 1px solid #1b2b3f;
+
+  color: #607b9c;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .ml-analysis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 450px) {
+  .ml-analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}

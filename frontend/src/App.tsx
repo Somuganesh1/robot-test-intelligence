@@ -60,6 +60,17 @@ interface TelemetryAnomaly {
   value: number
   z_score: number
 }
+interface MLAnomalyAnalysis {
+  test_id: string
+  task_type: string
+  model: string
+  training_runs: number
+  prediction: string
+  is_anomaly: boolean
+  decision_score: number
+  features_used: string[]
+}
+
 
 interface SafetyEvent {
   event: string
@@ -81,6 +92,7 @@ interface InvestigationReport {
   result: string
   failure_type: string | null
   telemetry_anomalies: TelemetryAnomaly[]
+  ml_anomaly_analysis: MLAnomalyAnalysis
   safety_events: SafetyEvent[]
   historical_signals: HistoricalSignal[]
   root_cause_analysis: RootCauseAnalysis
@@ -918,6 +930,79 @@ function App() {
                         )}
                       </div>
                     )}
+                  </div>
+                  
+                  <div className="intelligence-card ml-analysis-card">
+
+                    <div className="ml-analysis-header">
+
+                      <div>
+                        <p className="intelligence-card-label">
+                          ML ANOMALY ANALYSIS
+                        </p>
+
+                        <h3>
+                          Isolation Forest
+                        </h3>
+                      </div>
+
+                      <span
+                        className={
+                          investigation.ml_anomaly_analysis.is_anomaly
+                            ? 'ml-status anomaly'
+                            : 'ml-status normal'
+                        }
+                      >
+                        {investigation.ml_anomaly_analysis.prediction}
+                      </span>
+
+                    </div>
+
+                    <div className="ml-analysis-grid">
+
+                      <div className="ml-metric">
+                        <span>MODEL</span>
+
+                        <strong>
+                          {investigation.ml_anomaly_analysis.model}
+                        </strong>
+                      </div>
+
+                      <div className="ml-metric">
+                        <span>TRAINING RUNS</span>
+
+                        <strong>
+                          {investigation.ml_anomaly_analysis.training_runs}
+                        </strong>
+                      </div>
+
+                      <div className="ml-metric">
+                        <span>DECISION SCORE</span>
+
+                        <strong>
+                          {investigation.ml_anomaly_analysis.decision_score}
+                        </strong>
+                      </div>
+
+                      <div className="ml-metric">
+                        <span>FEATURES</span>
+
+                        <strong>
+                          {investigation.ml_anomaly_analysis.features_used.length}
+                        </strong>
+                      </div>
+
+                    </div>
+
+                    <p className="ml-analysis-note">
+                      Isolation Forest evaluates the combined telemetry pattern
+                      against successful runs of the same task.{' '}
+
+                      {investigation.ml_anomaly_analysis.is_anomaly
+                        ? 'This test was classified as a multivariate telemetry outlier and should be reviewed alongside the statistical and historical signals.'
+                        : 'This test was not classified as a multivariate telemetry outlier.'}
+                    </p>
+
                   </div>
 
                   <div className="intelligence-card historical-card">

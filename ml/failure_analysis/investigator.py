@@ -14,6 +14,9 @@ from ml.anomaly_detection.detector import (
     analyze_test,
     analyze_safety_events,
 )
+from ml.anomaly_detection.isolation_forest_detector import (
+    analyze_test_with_isolation_forest,
+)
 
 from ml.failure_analysis.analyzer import (
     compare_failure_to_normal,
@@ -59,6 +62,13 @@ def investigate_failure(
         df,
         test_id,
     )
+    ml_anomaly_analysis = (
+        analyze_test_with_isolation_forest(
+            df,
+            test_id,
+        )
+    )
+    
 
     report = {
         "test_id": test_id,
@@ -71,6 +81,7 @@ def investigate_failure(
             else test["failure_type"]
         ),
         "telemetry_anomalies": [],
+        "ml_anomaly_analysis": ml_anomaly_analysis,
         "safety_events": safety_events,
         "historical_signals": [],
     }
