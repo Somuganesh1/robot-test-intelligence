@@ -112,7 +112,9 @@ interface TestResponse {
 
 function App() {
   const [summary, setSummary] = useState<Summary | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(true)
   const [tests, setTests] = useState<TestRun[]>([])
+  
   const [testsLoading, setTestsLoading] = useState(false)
   const [selectedTest, setSelectedTest] = useState<TestRun | null>(null)
   
@@ -166,21 +168,27 @@ function App() {
    }
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/summary`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch summary')
-        }
+  setSummaryLoading(true)
 
-        return response.json()
-      })
-      .then((data: Summary) => {
-        setSummary(data)
-      })
-      .catch((error) => {
-        setError(error.message)
-      })
-  }, [])
+  fetch(`${API_BASE_URL}/api/summary`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch summary')
+      }
+
+      return response.json()
+    })
+    .then((data: Summary) => {
+      setSummary(data)
+      setError(null)
+    })
+    .catch((error) => {
+      setError(error.message)
+    })
+    .finally(() => {
+      setSummaryLoading(false)
+    })
+}, [])
 
   useEffect(() => {
   const params = new URLSearchParams()
@@ -303,7 +311,12 @@ function App() {
 
         <div className="system-status">
           <span className="status-dot"></span>
-          SYSTEM LIVE
+
+          {summaryLoading
+            ? 'CONNECTING...'
+            : error
+              ? 'BACKEND OFFLINE'
+              : 'SYSTEM LIVE'}
         </div>
       </header>
 
