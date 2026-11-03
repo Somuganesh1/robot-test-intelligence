@@ -884,6 +884,88 @@ function App() {
 
               {!investigationLoading && investigation && (
                 <div className="intelligence-grid">
+
+                  <div className="investigation-summary-card">
+                    <div className="investigation-summary-header">
+                      <div>
+                        <p className="intelligence-card-label">
+                          INVESTIGATION SUMMARY
+                        </p>
+
+                        <h3>
+                          {investigation.root_cause_analysis.hypotheses[0]?.title ??
+                            'No dominant contributing factor'}
+                        </h3>
+                      </div>
+
+                      <span
+                        className={`confidence-badge ${investigation.root_cause_analysis.investigation_confidence.toLowerCase()}`}
+                      >
+                        {investigation.root_cause_analysis.investigation_confidence}
+                        <span> CONFIDENCE</span>
+                      </span>
+                    </div>
+
+                    <div className="investigation-summary-grid">
+                      <div className="summary-item">
+                        <span>PRIMARY SIGNAL</span>
+                        <strong>
+                          {investigation.root_cause_analysis.hypotheses[0]?.feature
+                            .replaceAll('_', ' ')
+                            .toUpperCase() ?? 'NONE'}
+                        </strong>
+                      </div>
+
+                      <div className="summary-item">
+                        <span>SAFETY CONCERN</span>
+                        <strong>
+                          {investigation.safety_events.length > 0
+                            ? investigation.safety_events
+                                .map((event) =>
+                                  event.event.replaceAll('_', ' '),
+                                )
+                                .join(', ')
+                            : 'NO SAFETY EVENT'}
+                        </strong>
+                      </div>
+
+                      <div className="summary-item recommended-action">
+                        <span>RECOMMENDED NEXT ACTION</span>
+
+                        <strong>
+                          Review{' '}
+                          {investigation.root_cause_analysis.hypotheses[0]?.feature
+                            .replaceAll('_', ' ')
+                            .toLowerCase() ?? 'telemetry'}{' '}
+                          behavior and safety conditions before rerunning{' '}
+                          {selectedTest.task_type.replaceAll('_', ' ')}.
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="summary-evidence">
+                      <span>SUPPORTING EVIDENCE</span>
+
+                      <div>
+                        {investigation.root_cause_analysis.hypotheses.map(
+                          (hypothesis) => (
+                            <span
+                              className="summary-evidence-chip"
+                              key={hypothesis.feature}
+                            >
+                              {hypothesis.feature
+                                .replaceAll('_', ' ')
+                                .toUpperCase()}
+                              {' '}
+                              {hypothesis.percent_change > 0 ? '+' : ''}
+                              {hypothesis.percent_change}%
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="intelligence-card">
                     <p className="intelligence-card-label">
                       ANOMALY DETECTION
